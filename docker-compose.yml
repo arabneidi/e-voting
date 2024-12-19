@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  evoting_app:
+    build:
+      context: .
+      dockerfile: Dockerfile 
+    ports:
+      - "5000:5000"   
+    env_file:  
+      - .env  
+    volumes:  
+      - .:/app
+    environment:
+      CORE_PEER_MSPCONFIGPATH: "/etc/hyperledger/fabric/msp"
+      CORE_PEER_LOCALMSPID: "Org1MSP"
+      CORE_PEER_ADDRESS: "peer0.org1.example.com:7051"
+      ORDERER_ADDRESS: "orderer.example.com:7050"
+    depends_on:
+      - orderer.example.com
+      - peer0.org1.example.com
+
+  orderer.example.com:
+    image: hyperledger/fabric-orderer:latest
+    environment:
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/fabric/genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_TLS_CERTFILE=/etc/hyperledger/fabric/tls/example.com/orderer/server.crt
+      - ORDERER_TLS_KEYFILE=/etc/hyperledger/fabric/tls/example.com/orderer/server.key
+      - ORDERER_TLS_ROOTCERTFILE=/etc/hyperledger/fabric/tls/example.com/orderer/ca.crt
+    volumes:
+      - ./path/to/your/genesis.block:/var/hyperledger/fabric/genesis.block  # Adjust the path
+      - ./hyperledger/fabric/msp:/etc/hyperledger/fabric/msp  # Ensure this is correct
+      - ./hyperledger/fabric/tls/:/etc/hyperledger/fabric/tls  # Mount Peer TLS directory
+  peer0.org1.example.com:
+    image: hyperledger/fabric-peer:latest
+    environment:
+      - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERTFILE=/etc/hyperledger/fabric/tls/org1/peers/server.crt
+      - CORE_PEER_TLS_KEYFILE=/etc/hyperledger/fabric/tls/org1/peers/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/org1/peers/ca.crt
+    volumes:
+
+      - ./hyperledger/fabric/msp:/etc/hyperledger/fabric/msp  # Ensure this is correct
+      - ./path/to/your/chaincode:/opt/gopath/src/chaincode  # Adjust the path for chaincode
+      - ./hyperledger/fabric/tls/org1/peers/:/etc/hyperledger/fabric/tls

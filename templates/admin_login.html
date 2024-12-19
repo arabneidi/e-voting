@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+</head>
+<body>
+    <h2>Admin Login</h2>
+    <form method="post" action="{{ url_for('admin_login') }}">
+        <div>
+            <label for="username">Username</label>
+            <input type="text" name="username" required>
+        </div>
+        <div>
+            <label for="password">Password</label>
+            <input type="password" name="password" required>
+        </div>
+        {% if admin.totp_secret %}
+        <div>
+            <label for="totp_code">Google Authenticator Code</label>
+            <input type="text" name="totp_code" placeholder="6-digit code" required>
+        </div>
+        {% endif %}
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>

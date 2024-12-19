@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <style>
+        /* Light Theme (Default) */
+        :root {
+            --bg-color: #f7e6ff;
+            --card-bg-color: #f7f7f7;
+            --text-color: #333;
+            --btn-bg-color: #881fe5;
+            --error-color: red;
+            --light-purple-bg: #f2e6ff;
+        }
+
+        /* Dark Theme */
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --card-bg-color: #2b2b2b;
+            --text-color: #f7f7f7;
+            --btn-bg-color: #6f14c1;
+            --error-color: #ff6961;
+            --light-purple-bg: #1a1a1a;
+        }
+
+        /* Base Styles */
+        body {
+            background-color: var(--light-purple-bg);
+            color: var(--text-color);
+        }
+
+        .login-card {
+            background-color: var(--card-bg-color);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-custom {
+            background-color: var(--btn-bg-color);
+            color: #ffffff;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .font-small {
+            font-size: 14px;
+        }
+
+        .font-medium {
+            font-size: 16px;
+        }
+
+        .font-large {
+            font-size: 20px;
+        }
+
+        .toggle-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toggle-button">
+        <!-- Toggle buttons for dark mode and font size -->
+        <button id="toggleDarkMode" class="btn btn-secondary btn-sm">Dark Mode</button>
+        <button id="fontSmall" class="btn btn-secondary btn-sm">Small</button>
+        <button id="fontMedium" class="btn btn-secondary btn-sm">Medium</button>
+        <button id="fontLarge" class="btn btn-secondary btn-sm">Large</button>
+    </div>
+
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-lg-6 col-md-8 col-sm-12">
+                <div class="card shadow login-card">
+                    <div class="card-header text-center">
+                        <h2>Login</h2>
+                    </div>
+                    <div class="card-body font-medium" id="fontContainer">
+                        <!-- Error Message Section -->
+                        <div id="errorMessage" class="error-message"></div>
+
+                        <!-- Login Form -->
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" required placeholder="Enter your username">
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password">
+                            </div>
+
+                            <!-- Security Question (Hidden by Default) -->
+                            <div class="mb-3" id="securityQuestionSection" style="display: none;">
+                                <label for="security_question" class="form-label" id="securityQuestionLabel"></label>
+                                <input type="text" class="form-control" id="security_answer" name="security_answer" placeholder="Enter your answer">
+                            </div>
+
+                            <!-- Hidden input for reCAPTCHA -->
+                            <input type="hidden" id="recaptchaToken" name="recaptchaToken">
+
+                            <div class="d-grid mt-3">
+                                <button type="submit" id="loginBtn" class="btn btn-custom">Login</button>
+                            </div>
+                        </form>
+
+                        <!-- Register and Forgot Password Links -->
+                        <div class="mt-3 text-center">
+                            <a href="/register" class="text-decoration-none">Don't have an account? Register</a>
+                            <br>
+                            <a href="/forgot_password" class="text-decoration-none">Forgot Password?</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- reCAPTCHA v3 Integration -->
+    <script src="https://www.google.com/recaptcha/api.js?render=6LeEhUcqAAAAAF8mH7YArm1lNi1du8ZqWOEmyc7x"></script>
+
+    <!-- Custom JS for form behavior and accessibility -->
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();  // Prevent default form submission
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const securityAnswer = document.getElementById('security_answer').value || '';
+
+            grecaptcha.ready(function() {
+                grecaptcha.execute('6LeEhUcqAAAAAF8mH7YArm1lNi1du8ZqWOEmyc7x', { action: 'login' }).then(function(token) {
+                    document.getElementById('recaptchaToken').value = token;
+
+                    fetch('https://ipinfo.io/json')
+                        .then(response => response.json())
+                        .then(data => {
+                            const userIP = data.ip;
+
+                            // Send login request
+                            fetch('/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    username: username,
+                                    password: password,
+                                    user_ip: userIP,
+                                    security_answer: securityAnswer,
+                                    recaptcha_token: token
+                                })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        window.location.href = '/home';  // Redirect to dashboard
+                                    } else if (data.show_security_question) {
+                                        showSecurityQuestion(data.security_question);  // Show security question
+                                    } else {
+                                        showError(data.message);  // Show error message
+                                    }
+                                })
+                                .catch(error => {
+                                    showError("An error occurred. Please try again.");
+                                    console.error("Error:", error);
+                                });
+                        });
+                }).catch(function(error) {
+                    showError("reCAPTCHA error. Please try again.");
+                });
+            });
+        });
+
+        // Function to show security question
+        function showSecurityQuestion(question) {
+            const securityQuestionSection = document.getElementById('securityQuestionSection');
+            const securityQuestionLabel = document.getElementById('securityQuestionLabel');
+
+            securityQuestionLabel.textContent = question;
+            securityQuestionSection.style.display = 'block';  // Show the security question section
+        }
+
+        // Function to display error messages
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        // Dark Mode Toggle
+        document.getElementById('toggleDarkMode').addEventListener('click', function() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', body.classList.contains('dark-mode'));
+        });
+
+        // Font Size Toggles
+        document.getElementById('fontSmall').addEventListener('click', function() {
+            document.getElementById('fontContainer').className = 'font-small';
+            localStorage.setItem('fontSize', 'small');
+        });
+
+        document.getElementById('fontMedium').addEventListener('click', function() {
+            document.getElementById('fontContainer').className = 'font-medium';
+            localStorage.setItem('fontSize', 'medium');
+        });
+
+        document.getElementById('fontLarge').addEventListener('click', function() {
+            document.getElementById('fontContainer').className = 'font-large';
+            localStorage.setItem('fontSize', 'large');
+        });
+
+        // Load saved dark mode and font size settings
+        window.onload = function() {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+            const savedFontSize = localStorage.getItem('fontSize');
+            if (savedFontSize) {
+                document.getElementById('fontContainer').className = 'font-' + savedFontSize;
+            }
+        };
+    </script>
+</body>
+
+</html>

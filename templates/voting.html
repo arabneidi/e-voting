@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cast Your Vote</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Light Theme (Default) */
+        :root {
+            --bg-color: #f7e6ff;
+            --card-bg-color: #f7f7f7;
+            --text-color: #333;
+            --btn-bg-color: #881fe5;
+            --error-color: red;
+            --light-purple-bg: #f2e6ff;
+        }
+
+        /* Dark Theme */
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --card-bg-color: #2b2b2b;
+            --text-color: #f7f7f7;
+            --btn-bg-color: #6f14c1;
+            --error-color: #ff6961;
+            --light-purple-bg: #1a1a1a;
+        }
+
+        /* Base Styles */
+        body {
+            background-color: var(--light-purple-bg);
+            color: var(--text-color);
+        }
+
+        .card {
+            background-color: var(--card-bg-color);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-custom {
+            background-color: var(--btn-bg-color);
+            color: #ffffff;
+        }
+
+        .btn-vote {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-vote:hover {
+            background-color: #218838;
+        }
+
+        .btn-danger {
+            background-color: #e5004c;
+            color: white;
+        }
+
+        /* Center the spinner */
+        #loadingSpinner {
+            display: none;
+            text-align: center;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            margin-top: 20px;
+        }
+
+        /* Flex container for dark mode and font buttons */
+        .toggle-button {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Form container styling to avoid overlap */
+        .form-container {
+            margin-top: 30px;
+        }
+
+        /* Modal Styling to follow the theme */
+        .modal-content.dark-mode {
+            background-color: var(--card-bg-color);
+            color: var(--text-color);
+        }
+
+        .modal-content.light-mode {
+            background-color: var(--card-bg-color);
+            color: var(--text-color);
+        }
+
+        /* Reference Code Styles */
+        .reference-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .copy-btn {
+            margin-left: 10px;
+            background-color: var(--btn-bg-color);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-3">
+        <div class="toggle-button">
+            <!-- Toggle buttons for dark mode and font size -->
+            <button id="toggleDarkMode" class="btn btn-secondary btn-sm">Dark Mode</button>
+            <button id="fontSmall" class="btn btn-secondary btn-sm">Small</button>
+            <button id="fontMedium" class="btn btn-secondary btn-sm">Medium</button>
+            <button id="fontLarge" class="btn btn-secondary btn-sm">Large</button>
+        </div>
+
+        <div class="form-container">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2>Cast Your Vote</h2>
+                </div>
+                <div class="card-body">
+                    <form id="voteForm">
+                        <div class="mb-3">
+                            <h5>Select your candidate:</h5>
+                            {% for candidate in candidates %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="candidate" id="candidate{{ loop.index }}"
+                                    value="{{ candidate.name }}|{{ candidate.code }}" required>
+                                <label class="form-check-label" for="candidate{{ loop.index }}">
+                                    {{ candidate.name }} - {{ candidate.code }} - {{ candidate.party }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid mt-3">
+                            <button type="button" id="castVoteBtn" class="btn btn-vote">Cast Vote</button>
+                        </div>
+                    </form>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Processing...</span>
+                        </div>
+                        <p>Please wait while we process your vote...</p>
+                    </div>
+
+                    <!-- Confirmation Modal -->
+                    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="confirmModalLabel">Confirm Your Vote</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to cast your vote for <span id="selectedCandidate"></span>?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-vote" id="confirmVoteBtn">Yes, I'm Sure</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reference Code Modal -->
+                    <div class="modal fade" id="referenceCodeModal" tabindex="-1" aria-labelledby="referenceCodeLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="referenceCodeLabel">Vote Cast Successfully!</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Your reference code is:</p>
+                                    <div class="d-flex align-items-center">
+                                        <span id="referenceCode" class="reference-code"></span>
+                                        <button id="copyBtn" class="btn copy-btn" onclick="copyReferenceCode()">Copy <i class="bi bi-clipboard"></i></button>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-danger" onclick="window.location.href='/logout'">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript to handle vote submission -->
+    <script>
+        let selectedCandidateId = '';
+
+        document.getElementById('castVoteBtn').addEventListener('click', function () {
+            const candidateInput = document.querySelector('input[name="candidate"]:checked');
+            if (!candidateInput) {
+                alert('Please select a candidate.');
+                return;
+            }
+
+            // Store selected candidate and show confirmation modal
+            const [selectedCandidateName, selectedCandidateCode] = candidateInput.value.split('|');
+            document.getElementById('selectedCandidate').innerText = `${selectedCandidateName} (${selectedCandidateCode})`;
+
+            // Apply theme to the modal
+            applyModalTheme();
+
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            confirmModal.show();
+        });
+
+        document.getElementById('confirmVoteBtn').addEventListener('click', function () {
+            // Show loading spinner
+            document.getElementById('loadingSpinner').style.display = 'block';
+
+            // Disable the vote button to prevent multiple clicks
+            document.getElementById('castVoteBtn').disabled = true;
+
+            const candidateInput = document.querySelector('input[name="candidate"]:checked');
+            const [selectedCandidateName, selectedCandidateCode] = candidateInput.value.split('|');
+
+            fetch('/cast_vote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    candidate_name: selectedCandidateName,
+                    candidate_code: selectedCandidateCode
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loadingSpinner').style.display = 'none';
+
+                    if (data.message === "You have already voted!") {                        alert("You have already voted!");
+                    } else {
+                        // Display the reference code modal with the reference code
+                        document.getElementById('referenceCode').innerText = data.reference_code;
+                        const referenceCodeModal = new bootstrap.Modal(document.getElementById('referenceCodeModal'));
+                        referenceCodeModal.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    alert('There was an issue casting your vote. Please try again.');
+                });
+        });
+
+        // Function to apply the theme to the modal
+        function applyModalTheme() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const modalContent = document.querySelector('#confirmModal .modal-content');
+            if (isDarkMode) {
+                modalContent.classList.add('dark-mode');
+                modalContent.classList.remove('light-mode');
+            } else {
+                modalContent.classList.add('light-mode');
+                modalContent.classList.remove('dark-mode');
+            }
+        }
+
+        // Dark Mode Toggle
+        document.getElementById('toggleDarkMode').addEventListener('click', function () {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', body.classList.contains('dark-mode'));
+        });
+
+        // Font Size Toggles
+        document.getElementById('fontSmall').addEventListener('click', function () {
+            document.body.classList.add('font-small');
+            document.body.classList.remove('font-medium', 'font-large');
+            localStorage.setItem('fontSize', 'small');
+        });
+
+        document.getElementById('fontMedium').addEventListener('click', function () {
+            document.body.classList.add('font-medium');
+            document.body.classList.remove('font-small', 'font-large');
+            localStorage.setItem('fontSize', 'medium');
+        });
+
+        document.getElementById('fontLarge').addEventListener('click', function () {
+            document.body.classList.add('font-large');
+            document.body.classList.remove('font-small', 'font-medium');
+            localStorage.setItem('fontSize', 'large');
+        });
+
+        // Load saved dark mode and font size settings
+        window.onload = function () {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+            const savedFontSize = localStorage.getItem('fontSize');
+            if (savedFontSize) {
+                document.body.classList.add('font-' + savedFontSize);
+            }
+        };
+
+        // Copy reference code to clipboard
+        function copyReferenceCode() {
+            const referenceCode = document.getElementById('referenceCode').innerText;
+            navigator.clipboard.writeText(referenceCode).then(() => {
+                alert("Reference code copied to clipboard!");
+            }).catch(err => {
+                console.error('Error copying reference code:', err);
+                alert("Failed to copy reference code.");
+            });
+        }
+    </script>
+</body>
+
+</html>
+

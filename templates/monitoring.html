@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monitoring</title>
+</head>
+<body>
+    <h2>Monitoring</h2>
+    <p>Total Votes: {{ total_votes }}</p>
+
+    <h3>Last Voters</h3>
+    <ul>
+        {% for voter in last_voters %}
+        <li>{{ voter.name }} voted at {{ voter.vote_time }}</li>
+        {% endfor %}
+    </ul>
+
+    <p><a href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a></p>
+</body>
+</html>

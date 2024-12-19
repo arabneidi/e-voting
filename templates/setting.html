@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Settings</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .settings-card {
+            background-color: #f7f7f7;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .bg-light-purple {
+            background-color: #f2e6ff;
+        }
+
+        .btn-custom {
+            background-color: #881fe5;
+            color: #ffffff;
+        }
+
+        .mb-3 {
+            margin-bottom: 15px;
+        }
+
+        .form-select, .form-control {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-light-purple">
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-lg-6 col-md-8 col-sm-12">
+                <div class="card shadow settings-card">
+                    <div class="card-header text-center">
+                        <h2>Election Settings</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('update_settings') }}">
+                            <div class="mb-3">
+                                <label for="start_time" class="form-label">Election Start Time</label>
+                                <input type="datetime-local" class="form-control" id="start_time" name="start_time" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="end_time" class="form-label">Election End Time</label>
+                                <input type="datetime-local" class="form-control" id="end_time" name="end_time" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="extend_time" class="form-label">Extend Time</label>
+                                <input type="number" class="form-control" id="extend_time" name="extend_time" placeholder="Enter minutes to extend" required>
+                            </div>
+
+                            <!-- Election Type -->
+                            <div class="mb-3">
+                                <label for="election_type" class="form-label">Election Type</label>
+                                <select class="form-select" id="election_type" name="election_type" required onchange="showProvinces(this.value)">
+                                    <option value="1">Federal</option>
+                                    <option value="2">Provincial</option>
+                                    <option value="3">Territorial</option>
+                                </select>
+                            </div>
+
+                            <!-- Provinces / Territories Dropdown -->
+                            <div class="mb-3" id="province_territory_dropdown" style="display: none;">
+                                <label for="province_territory" class="form-label">Select Province / Territory</label>
+                                <select class="form-select" id="province_territory" name="province_territory">
+                                    <option value="">Select...</option>
+                                    <!-- Populate with provinces or territories -->
+                                    <option value="AB">Alberta</option>
+                                    <option value="BC">British Columbia</option>
+                                    <option value="ON">Ontario</option>
+                                    <!-- Add more provinces/territories here -->
+                                </select>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-custom">Save Settings</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showProvinces(value) {
+            const dropdown = document.getElementById('province_territory_dropdown');
+            if (value == 2 || value == 3) {
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+            }
+        }
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

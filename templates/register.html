@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css">
+    <style>
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .attention-message {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+
+<body class="bg-light-purple">
+    <a href="/" class="btn btn-secondary back-button">Back</a>
+
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+            <div class="col-lg-8 col-md-10 col-sm-12">
+                <div class="card shadow register-card">
+                    <div class="card-header text-center">
+                        <h2>Register</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="attention-message">
+                            You must provide at least one of the phone number or email.
+                        </div>
+                        <div id="errorMessage" class="error-message"></div>
+                        <form id="registerForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="first_name" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="first_name" name="first_name" required placeholder="Enter your first name">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="last_name" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="last_name" name="last_name" required placeholder="Enter your last name">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="id_card" class="form-label">ID Card (JPG) - Maximum size: 2 MB</label>
+                                        <input type="file" class="form-control" id="id_card" name="id_card" accept=".jpg,.jpeg" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="phone_number" class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="phone_number" name="phone_number" required placeholder="Enter your phone number">
+                                        <input type="hidden" id="country_code" name="country_code">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email Address</label>
+                                        <input type="email" class="form-control" id="email" name="email" required placeholder="Enter your email">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="otp_phone" class="form-label">Phone Verification Code</label>
+                                        <input type="text" class="form-control" id="otp_phone" name="otp_phone" placeholder="Enter verification code" disabled>
+                                        <button type="button" class="btn btn-custom mt-2" id="sendOtpPhoneBtn" disabled>Send Code</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="username" class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="username" name="username" required placeholder="Enter your username">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label">Password</label>
+                                        <input type="password" class="form-control" id="password" name="password" required placeholder="Enter your password">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required placeholder="Confirm your password">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="security_question" class="form-label">Security Question</label>
+                                        <select class="form-select" id="security_question" name="security_question" required>
+                                            <option value="favorite_book">What is your favorite book name?</option>
+                                            <option value="pet_name">What is your pet name?</option>
+                                            <option value="favorite_movie">What is your favorite movie name?</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="security_answer" class="form-label">Answer</label>
+                                        <input type="text" class="form-control" id="security_answer" name="security_answer" required placeholder="Enter your answer">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="otp_email" class="form-label">Email Verification Code</label>
+                                        <input type="text" class="form-control" id="otp_email" name="otp_email" placeholder="Enter verification code" disabled>
+                                        <button type="button" class="btn btn-custom mt-2" id="sendOtpEmailBtn" disabled>Send Code</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hidden input for reCAPTCHA -->
+                            <input type="hidden" id="recaptchaToken" name="recaptchaToken">
+
+                            <div class="d-grid mt-3">
+                                <button type="submit" id="registerBtn" class="btn btn-custom">Register</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LeEhUcqAAAAAF8mH7YArm1lNi1du8ZqWOEmyc7x"></script>
+
+    <!-- Custom JS for form behavior -->
+    <script>
+        // Initialize Intl Tel Input
+        const phoneInputField = document.querySelector("#phone_number");
+        const phoneInput = window.intlTelInput(phoneInputField, {
+            initialCountry: "auto",
+            geoIpLookup: function (callback) {
+                fetch('https://ipinfo.io/json', {
+                    cache: 'reload'
+                }).then(response => {
+                    return response.json();
+                }).then(data => {
+                    callback(data.country);
+                });
+            },
+            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
+        });
+
+        // Set the country code hidden input before submitting the form
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            const countryCode = phoneInput.getSelectedCountryData().dialCode;
+            document.getElementById('country_code').value = "+" + countryCode;
+
+            e.preventDefault();  // Prevent default form submission
+
+            grecaptcha.ready(function () {
+                grecaptcha.execute('6LeEhUcqAAAAAF8mH7YArm1lNi1du8ZqWOEmyc7x', { action: 'register' }).then(function (token) {
+                    document.getElementById('recaptchaToken').value = token;
+                    submitForm();  // Call submitForm() function to validate and submit
+                }).catch(function (error) {
+                    showError("reCAPTCHA error. Please try again.");
+                });
+            });
+        });
+
+        // Function to submit form data using AJAX
+        function submitForm() {
+            const formData = new FormData(document.getElementById('registerForm'));
+
+            fetch('/register', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/';  // Redirect to login page
+                } else {
+                    showError(data.message);  // Show error message
+                }
+            })
+            .catch(error => {
+                showError("An error occurred. Please try again.");
+                console.error("Error:", error);
+            });
+        }
+
+        // Function to display error messages
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent =            message;
+            errorMessage.style.display = 'block';
+        }
+
+        // Function to send OTP for phone number
+        document.getElementById('sendOtpPhoneBtn').addEventListener('click', function () {
+            const phone_number = phoneInput.getNumber(); // Get the full phone number
+            const country_code = phoneInput.getSelectedCountryData().dialCode; // Get the country code
+
+            document.getElementById('country_code').value = "+" + country_code;
+
+            // Validate the phone number before sending
+            if (!phone_number) {
+                showError('Please enter your phone number.');
+                return;
+            }
+
+            fetch('/send_otp_phone', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    phone_number: phone_number,
+                    country_code: "+" + country_code // Include the country code separately
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Code sent to your phone.');
+                    document.getElementById('otp_phone').disabled = false;  // Enable OTP input
+                } else {
+                    showError('Failed to send code. Please try again.');
+                }
+            });
+        });
+
+        // Function to send OTP for email
+        document.getElementById('sendOtpEmailBtn').addEventListener('click', function () {
+            const email = document.getElementById('email').value;
+
+            // Validate the email before sending
+            if (!email) {
+                showError('Please enter your email.');
+                return;
+            }
+
+            fetch('/send_otp_email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Code sent to your email.');
+                    document.getElementById('otp_email').disabled = false;  // Enable OTP input
+                } else {
+                    showError('Failed to send code. Please try again.');
+                }
+            });
+        });
+
+        // Enable or disable the send code buttons based on input
+        document.getElementById('phone_number').addEventListener('input', function () {
+            document.getElementById('sendOtpPhoneBtn').disabled = !this.value; // Enable if there's a value
+        });
+
+        document.getElementById('email').addEventListener('input', function () {
+            document.getElementById('sendOtpEmailBtn').disabled = !this.value; // Enable if there's a value
+        });
+
+        // Function to show disappearing notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-success';
+            notification.role = 'alert';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(function () {
+                notification.remove();
+            }, 3000);  // Remove after 3 seconds
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <h2>Admin Dashboard</h2>
+    <form method="post" action="{{ url_for('admin_dashboard') }}">
+        <div>
+            <label for="election_start">Election Start Time:</label>
+            <input type="datetime-local" name="election_start" required>
+        </div>
+        <div>
+            <label for="election_end">Election End Time:</label>
+            <input type="datetime-local" name="election_end" required>
+        </div>
+        <div>
+            <label for="extend">Extend Election?</label>
+            <input type="checkbox" name="extend">
+        </div>
+        <button type="submit">Save Settings</button>
+    </form>
+
+    <a href="{{ url_for('monitoring') }}">Go to Monitoring</a>
+</body>
+</html>

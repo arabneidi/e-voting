@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Fill Form Using Passport with AWS Textract</title>
+    <style>
+        video, canvas {
+            display: block;
+            margin: 20px auto;
+            position: relative;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 640px;
+            height: 480px;
+            border: 2px dashed red;
+            pointer-events: none;
+        }
+        #alignment-line {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            width: 80%;
+            height: 2px;
+            background: green;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+        #loader {
+            display: none;
+            margin: 20px auto;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h2 align="center">Auto-Fill Form Using Passport with AWS Textract</h2>
+    <div style="position:relative; width:640px; margin:auto;">
+        <video id="video" width="640" height="480" autoplay></video>
+        <div id="overlay">
+            <div id="alignment-line"></div> <!-- Alignment line for MRZ area -->
+        </div>
+    </div>
+    <button id="capture">Capture Passport</button>
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+    <div id="loader"></div>
+    <p id="result" align="center"></p>
+
+    <form id="registrationForm">
+        <div class="form-field">
+            <label for="extracted_name">Name:</label>
+            <input type="text" id="extracted_name" size="50">
+        </div>
+        <div class="form-field">
+            <label for="extracted_passport_number">Passport Number:</label>
+            <input type="text" id="extracted_passport_number" size="50">
+        </div>
+        <div class="form-field">
+            <label for="extracted_birth_date">Date of Birth:</label>
+            <input type="text" id="extracted_birth_date" size="50">
+        </div>
+        <div class="form-field">
+            <label for="bulk_text">Extracted Bulk Text:</label>
+            <textarea id="bulk_text" rows="10" cols="50"></textarea>
+        </div>
+    </form>
+
+    <script>
+        // Access the webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                var video = document.getElementById('video');
+                video.srcObject = stream;
+            })
+            .catch(function (err) {
+                console.error("An error occurred: " + err);
+                document.getElementById('result').innerText = 'Error accessing the webcam. Please check your permissions.';
+            });
+
+        // Capture the image and send it to the backend
+        document.getElementById('capture').addEventListener('click', function () {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            var video = document.getElementById('video');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            var imageData = canvas.toDataURL('image/jpeg');
+            var base64Image = imageData.split(',')[1];
+
+            // Show loading spinner
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('result').innerText = 'Processing the image...';
+
+            fetch('/extract_data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: base64Image })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide the loader
+                document.getElementById('loader').style.display = 'none';
+                if (data.success) {
+                    document.getElementById('extracted_name').value = data.name || 'N/A';
+                    document.getElementById('extracted_passport_number').value = data.passport_number || 'N/A';
+                    document.getElementById('extracted_birth_date').value = data.birth_date || 'N/A';
+                    document.getElementById('bulk_text').value = data.bulk_text || 'N/A';
+                    document.getElementById('result').innerText = 'Data extracted successfully.';
+                } else {
+                    document.getElementById('result').innerText = data.message;
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                // Hide the loader
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('result').innerText = 'Error during data extraction. Please try again.';
+            });
+        });
+    </script>
+</body>
+</html>
